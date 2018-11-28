@@ -25,4 +25,4 @@ fi
 
 # Then we want to add the datetime as a unique version identifier when
 # the file is added to the head.html
-sed -i "/webfonts/ s/'\([0-9.]*\)'/\1.$(date +'%y%m%d_%H%M%S')/" functions.php
+sed -i "/webfonts/ s/1\.\([0-9]*\)/1.$(date +'%Y%m%d%H%M%S')/" functions.php
