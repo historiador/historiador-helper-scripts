@@ -1,0 +1,28 @@
+#!/bin/bash
+
+    # This program is free software: you can redistribute it and/or modify
+    # it under the terms of the GNU General Public License as published by
+    # the Free Software Foundation, either version 3 of the License, or
+    # (at your option) any later version.
+
+    # This program is distributed in the hope that it will be useful,
+    # but WITHOUT ANY WARRANTY; without even the implied warranty of
+    # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    # GNU General Public License for more details.
+
+    # You should have received a copy of the GNU General Public License
+    # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# TODO this is very simplistic.  Need to handle usage better.
+
+# This script should be run from the root of the Historiador WP Theme.
+
+# We first want to execute the gulp task for parsing the webfont styles into
+# a single file
+if [ -f gulpfile.js ]; then
+	gulp webfonts
+fi
+
+# Then we want to add the datetime as a unique version identifier when
+# the file is added to the head.html
+sed -i "/webfonts/ s/'\([0-9.]*\)'/\1.$(date +'%y%m%d_%H%M%S')/" functions.php
