@@ -1,0 +1,60 @@
+#!/bin/bash
+
+    # This program is free software: you can redistribute it and/or modify
+    # it under the terms of the GNU General Public License as published by
+    # the Free Software Foundation, either version 3 of the License, or
+    # (at your option) any later version.
+
+    # This program is distributed in the hope that it will be useful,
+    # but WITHOUT ANY WARRANTY; without even the implied warranty of
+    # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    # GNU General Public License for more details.
+
+    # You should have received a copy of the GNU General Public License
+    # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# The Historiador WordPress theme has some parts that are specific to
+# Custom Post Types, which are registered separately.  This script
+# removes those parts, placing them in a new directory.  The idea is to
+# run this when we need to keep and/or repurpose the core code base.
+
+# NOTE this is work in progress.  To get the code inside the theme's
+# functions.php I have inserted two comments in the form of "{START,END}
+# DO NOT EDIT".  We need to add a test that these actually exist and
+# make sure any other errors are handled gracefully.
+
+# Define the directories we will be using
+historiador_theme_dir="$HOME/historiador-wp-theme-upstream"
+historiador_extracted_parts_dir="$HOME/historiador-extracted-cpt-parts-templates"
+
+# Clone the Historiador WP theme and place it in a new directory
+echo "Preparing to clone upstream Historiador WP Theme"
+echo "Will place it at $historiador_theme_dir"
+echo ""
+git clone --depth 1 https://github.com/historiador/historiador-wp-theme.git "$historiador_theme_dir"
+
+# Create the directory where we will be putting the CPT parts
+mkdir -p "$historiador_extracted_parts_dir"
+echo "Created the directory where we will place the extracted parts"
+echo ""
+
+# Operate on the functions.php. Currently (2018-12-01) this will extract
+# the part of the function that registers a sidebar for each post type.
+sed '/START .* EDIT .*/,/END .* EDIT .*/!d' "$historiador_theme_dir/functions.php" \
+| grep -E -v 'START .* EDIT .*|END .* EDIT .*' > "$historiador_extracted_parts_dir/extracted-functions.php"
+
+echo "Extracted everything from $historiador_theme_dir/functions.php"
+echo "Placed it at $historiador_extracted_parts_dir/extracted-functions.php"
+echo ""
+
+# Now delete what was extracted
+sed -i '/START .* EDIT .*/,/END .* EDIT .*/d' "$historiador_theme_dir/functions.php"
+echo "Cleaned up the original functions.php from all the parts we extracted."
+
+# Now just move the template files to the new directory
+cd "$historiador_theme_dir"
+mv {archive,single,sidebar}-{blog_en,books,europarl,events,podcasts,videos}.php \
+"$historiador_extracted_parts_dir/"
+
+echo "Removed all CPT templates"
+echo "Placed them at $historiador_extracted_parts_dir"
