@@ -38,6 +38,9 @@ mkdir -p "$historiador_extracted_parts_dir"
 echo "Created the directory where we will place the extracted parts"
 echo ""
 
+### TODO turn the following two operations into a single function.  We
+### need to re-use this code for more extractions.
+
 # Operate on the functions.php. Currently (2018-12-01) this will extract
 # the part of the function that registers a sidebar for each post type.
 sed '/START .* EDIT .*/,/END .* EDIT .*/!d' "$historiador_theme_dir/functions.php" \
