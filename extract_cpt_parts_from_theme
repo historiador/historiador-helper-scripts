@@ -19,9 +19,9 @@
 # run this when we need to keep and/or repurpose the core code base.
 
 # NOTE this is work in progress.  To get the code inside the theme's
-# functions.php I have inserted two comments in the form of "{START,END}
-# DO NOT EDIT".  We need to add a test that these actually exist and
-# make sure any other errors are handled gracefully.
+# relevant files I have inserted two comments in the form of
+# "{START,END} DO NOT EDIT".  We need to add a test that these actually
+# exist and make sure any other errors are handled gracefully.
 
 # Define the directories we will be using
 historiador_theme_dir="$HOME/historiador-wp-theme-upstream"
@@ -31,33 +31,51 @@ historiador_extracted_parts_dir="$HOME/historiador-extracted-cpt-parts-templates
 echo "Preparing to clone upstream Historiador WP Theme"
 echo "Will place it at $historiador_theme_dir"
 echo ""
+
+# Clone the repo and check whether the opration ran successfully.  Else abort.
 git clone --depth 1 https://github.com/historiador/historiador-wp-theme.git "$historiador_theme_dir"
+git_clone_success=$?
+if [[ "$git_clone_success" -eq 0 ]]; then
+    echo "Repository was cloned successfully!"
+else
+    echo "git repository could not be found."
+	exit 1
+fi
 
 # Create the directory where we will be putting the CPT parts
 mkdir -p "$historiador_extracted_parts_dir"
 echo "Created the directory where we will place the extracted parts"
 echo ""
 
-### TODO turn the following two operations into a single function.  We
-### need to re-use this code for more extractions.
-
-# Operate on the functions.php. Currently (2018-12-01) this will extract
-# the part of the function that registers a sidebar for each post type.
-sed '/START .* EDIT .*/,/END .* EDIT .*/!d' "$historiador_theme_dir/functions.php" \
-| grep -E -v 'START .* EDIT .*|END .* EDIT .*' > "$historiador_extracted_parts_dir/extracted-functions.php"
-
-echo "Extracted everything from $historiador_theme_dir/functions.php"
-echo "Placed it at $historiador_extracted_parts_dir/extracted-functions.php"
-echo ""
-
-# Now delete what was extracted
-sed -i '/START .* EDIT .*/,/END .* EDIT .*/d' "$historiador_theme_dir/functions.php"
-echo "Cleaned up the original functions.php from all the parts we extracted."
-
-# Now just move the template files to the new directory
+# TODO make this contingent on the presence of those files
+# Move the Custom Post Type template files to the new directory
 cd "$historiador_theme_dir"
 mv {archive,single,sidebar}-{blog_en,books,europarl,events,podcasts,videos}.php \
 "$historiador_extracted_parts_dir/"
 
 echo "Removed all CPT templates"
 echo "Placed them at $historiador_extracted_parts_dir"
+
+# Accepts a filepath as the first argument and a string as the second
+extract_marked_area() {
+	if [ -f "$1" ]; then
+		# Copy to a new file the part of the code demarcated by special comments. 
+		sed '/START .* EDIT .*/,/END .* EDIT .*/!d' "$1" \
+		| grep -E -v 'START .* EDIT .*|END .* EDIT .*' > "$historiador_extracted_parts_dir/${2}.php"
+
+		echo "Extracted everything from $1"
+		echo "Placed it at $historiador_extracted_parts_dir/${2}.php"
+		echo ""
+
+		# Delete the demarcated code from the original file
+		sed -i '/START .* EDIT .*/,/END .* EDIT .*/d' "$1"
+		echo "Cleaned up the original file from all the parts we extracted."
+	else
+		echo "ERROR. Could not find: $1"
+		exit 1
+	fi
+}
+
+# Check whether the files exist.  Extract the parts we need.  Else abort.
+extract_marked_area "$historiador_theme_dir/functions.php" 'extracted-functions'
+extract_marked_area "$historiador_theme_dir/inc/template-functions.php" 'extracted-template-functions'
